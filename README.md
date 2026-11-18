@@ -328,7 +328,6 @@ docs/                README 里的动图
 ## 致谢
 
 - 黏连滤镜的做法（高斯模糊 + 透明度阈值 + `atop` 合成）来自 Lucas Bebber 在 Codrops 发表的 [Creative Gooey Effects](https://tympanus.net/codrops/2015/03/10/creative-gooey-effects/)（2015）。
-- 按下回弹的手感起点，参考了《果冻导航》（jelly-nav）提示词里的按下回弹思路。
 
 ## License
 
