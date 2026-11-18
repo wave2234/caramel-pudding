@@ -10,7 +10,7 @@
 
 [**在线试玩**](https://wave2234.github.io/caramel-pudding/) · [哪里用哪个](#哪里用果冻哪里用黏连) · [给你的 AI 看的一段话](#给你的-ai-看的一段话)
 
-<img src="docs/caramel.gif" width="378" alt="焦糖：选中色在一排按钮之间黏连着流过去">
+<img src="docs/caramel.gif" width="320" alt="焦糖：选中色在一排按钮之间黏连着流过去">
 
 <sub>Jelly press + gooey “caramel” selection for any web UI. One file, zero dependencies.</sub>
 
@@ -32,19 +32,15 @@
 
 ## 效果
 
-<table>
-<tr>
-<td align="center" colspan="2"><img src="docs/caramel-slow.gif" width="756" alt="焦糖慢放"><br><sub>焦糖 · 慢放 ×0.25：相邻时拉丝黏连，隔得远时挤出一滴糖珠滑过去</sub></td>
-</tr>
-<tr>
-<td align="center" width="50%"><img src="docs/pudding.gif" width="378" alt="布丁"><br><sub>布丁 · 大卡片按住再松手、大按钮</sub></td>
-<td align="center" width="50%"><img src="docs/menu.gif" width="378" alt="长按菜单"><br><sub>长按菜单从手指的位置长出来</sub></td>
-</tr>
-<tr>
-<td align="center"><img src="docs/pop.gif" width="378" alt="浮层弹出"><br><sub>Toast、浮层卡片「啵」地弹出来</sub></td>
-<td align="center"><img src="docs/island.gif" width="378" alt="灵动岛"><br><sub>灵动岛 · 原生弹簧</sub></td>
-</tr>
-</table>
+<p align="center"><img src="docs/caramel-slow.gif" width="320" alt="焦糖慢放"><br><sub>焦糖 · 慢放 ×0.25：相邻时拉丝黏连，隔得远时挤出一滴糖珠滑过去</sub></p>
+
+<p align="center"><img src="docs/pudding.gif" width="320" alt="布丁"><br><sub>布丁 · 大卡片按住再松手、大按钮</sub></p>
+
+<p align="center"><img src="docs/menu.gif" width="320" alt="长按菜单"><br><sub>长按菜单从手指的位置长出来</sub></p>
+
+<p align="center"><img src="docs/pop.gif" width="320" alt="浮层弹出"><br><sub>Toast、浮层卡片「啵」地弹出来</sub></p>
+
+<p align="center"><img src="docs/island.gif" width="320" alt="灵动岛"><br><sub>灵动岛 · 原生弹簧</sub></p>
 
 > 手机上的手感比动图好得多，去 [在线试玩](https://wave2234.github.io/caramel-pudding/) 戳一戳；页面顶上有「慢放 ×0.25」。
 
@@ -195,7 +191,7 @@ await CaramelPudding.out(menu, 'hide');   // 收起：缩一下淡出，结束�
 
 ### 🍯 焦糖：糖浆是怎么画的
 
-<p align="center"><img src="docs/caramel-frames.png" width="378" alt="糖浆分镜"><br><sub>松手后 0 / 90 / 180 / 260 / 340 / 520ms：被拉住 → 拉出糖丝 → 两颗连成一团 → 流过去 → 过冲 → 落定</sub></p>
+<p align="center"><img src="docs/caramel-frames.png" width="320" alt="糖浆分镜"><br><sub>松手后 0 / 90 / 180 / 260 / 340 / 520ms：被拉住 → 拉出糖丝 → 两颗连成一团 → 流过去 → 过冲 → 落定</sub></p>
 
 **1. 一层放在按钮后面的「糖浆层」。** 在这一排按钮里插一个 `div`：`position:absolute; z-index:-1; pointer-events:none`，父元素加 `isolation:isolate`。于是它画在这一排的底色**之上**、按钮文字**之下**——文字永远在糖浆上面，不会被滤镜糊掉。
 
