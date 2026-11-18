@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>焦糖布丁 · Caramel Pudding</title>
+<meta name="description" content="给网页用的 Q 弹 + 黏连手感：按下去像布丁一样弹，选中的颜色像焦糖一样流过去。一个文件，零依赖。">
+<meta name="theme-color" content="#f6efe4">
+<style>
+  :root{
+    --bg:#f6efe4; --card:#fffaf3; --ink:#3a2a1f; --mute:#8d7867; --line:rgba(58,42,31,.14);
+    --track:#ecdfcd; --car:#c6772f; --car-ink:#fff8ef; --soft:#f3dcc0; --soft-ink:#9a5420;
+    --pud:#fbe7b3; --shadow:0 14px 30px -18px rgba(96,58,24,.42), 0 2px 6px -3px rgba(96,58,24,.12);
+    color-scheme:light;
+  }
+  html[data-theme=dark]{
+    --bg:#1b1511; --card:#271f19; --ink:#f3e7d9; --mute:#a8927f; --line:rgba(243,231,217,.16);
+    --track:#352a21; --car:#e39a52; --car-ink:#26170b; --soft:#4b3626; --soft-ink:#f6c58f;
+    --pud:#3d3220; --shadow:0 16px 32px -18px rgba(0,0,0,.7), 0 2px 6px -3px rgba(0,0,0,.35);
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);-webkit-tap-highlight-color:transparent}
+  body{font:15px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif;min-height:100vh;transition:background .3s,color .3s}
+  button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer}
+  a{color:inherit}
+  .serif{font-family:"Noto Serif SC","Noto Serif CJK SC","Source Han Serif SC","Songti SC",serif}
+  .wrap{max-width:440px;margin:0 auto;padding:68px 18px 64px}
+
+  /* 头 */
+  .top{margin-bottom:26px}
+  .top h1{font-size:36px;line-height:1.1;margin:0 0 6px;letter-spacing:.04em;font-weight:900}
+  .top .sub{margin:0;color:var(--mute);font-size:14px}
+  .tools{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+  .tool{height:32px;padding:0 13px;border-radius:999px;border:1.5px solid var(--line);font-size:13px;color:var(--mute);display:inline-flex;align-items:center;text-decoration:none}
+  .tool.on{color:var(--soft-ink);border-color:var(--soft-ink)}
+
+  .sec{margin-top:34px}
+  .sec-h{display:flex;align-items:baseline;gap:10px;margin-bottom:4px}
+  .sec-h h2{margin:0;font-size:24px;letter-spacing:.06em}
+  .sec-h .en{font-size:12px;color:var(--mute);letter-spacing:.08em;text-transform:uppercase}
+  .lede{margin:0 0 16px;color:var(--mute);font-size:13.5px}
+  .demo{margin-bottom:18px}
+  .lab{font-size:12px;color:var(--mute);margin:0 0 8px 2px;letter-spacing:.05em}
+  .panel{background:var(--card);border-radius:22px;padding:14px;box-shadow:var(--shadow)}
+
+  /* 焦糖：分段 */
+  .seg{display:flex;gap:4px;padding:4px;background:var(--track);border-radius:999px}
+  .seg button{flex:1;height:38px;border-radius:999px;color:var(--mute);font-weight:700;font-size:14px}
+  .seg button.on{background:var(--car);color:var(--car-ink);box-shadow:0 6px 14px -8px rgba(150,76,18,.75)}
+  /* 焦糖：tab（aria-selected） */
+  .tabs{display:flex;gap:6px}
+  .tabs [role=tab]{padding:8px 15px;border-radius:14px;color:var(--mute);font-weight:700;font-size:14px}
+  .tabs [role=tab][aria-selected=true]{background:var(--soft);color:var(--soft-ink)}
+  /* 焦糖：筛选 chip（每次点都整排重画，模拟 React / Vue） */
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{padding:6px 14px;border-radius:999px;border:1.5px solid var(--line);font-size:14px}
+  .chip.on{background:var(--car);border-color:var(--car);color:var(--car-ink)}
+  /* 焦糖：日期 */
+  .wk,.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .wk{font-size:11px;color:var(--mute);text-align:center;margin-bottom:6px}
+  .cal .d{aspect-ratio:1;border-radius:50%;font-weight:700;font-size:14px}
+  .cal .d.today{color:var(--car)}
+  .cal .d.on{background:var(--car);color:var(--car-ink)}
+  /* 焦糖：底栏（亮的是图标后面那颗小药丸） */
+  .bar{display:flex;justify-content:space-around;padding:8px 4px 9px;background:var(--card);border-radius:24px;box-shadow:var(--shadow)}
+  .bar .tab{display:flex;flex-direction:column;align-items:center;gap:3px;width:74px;color:var(--mute);font-size:12px;font-weight:700}
+  .bar .ic{display:grid;place-items:center;width:58px;height:32px;border-radius:999px}
+  .bar svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+  .bar .tab.on{color:var(--soft-ink)}
+  .bar .tab.on .ic{background:var(--soft)}
+
+  /* 布丁 */
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+  .pcard{display:flex;flex-direction:column;align-items:flex-start;padding:16px;height:160px;border-radius:26px;background:var(--card);box-shadow:var(--shadow);text-align:left}
+  .pcard.alt{background:var(--pud)}
+  .pcard .em{font-size:46px;line-height:1;margin-bottom:auto}
+  .pcard b{font-size:16px;letter-spacing:.04em}
+  .pcard small{color:var(--mute);font-size:12px}
+  .big{display:block;width:100%;height:52px;border-radius:18px;background:var(--car);color:var(--car-ink);font-size:16px;font-weight:800;letter-spacing:.08em;box-shadow:0 12px 22px -14px rgba(150,76,18,.9)}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+  .mid{height:46px;border-radius:16px;background:var(--card);box-shadow:var(--shadow);font-weight:700;font-size:14px}
+  .line{display:flex;align-items:center;gap:10px}
+  .line .sp{flex:1}
+  .stepper{display:flex;align-items:center;gap:10px;font-weight:800}
+  .sq{width:34px;height:34px;border-radius:12px;background:var(--track);font-size:18px;line-height:1}
+  .num{min-width:18px;text-align:center}
+  .sw{width:46px;height:28px;border-radius:999px;background:var(--track);position:relative;transition:background .25s}
+  .sw i{position:absolute;left:3px;top:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.18);transition:left .25s cubic-bezier(.3,.7,.4,1)}
+  .sw[aria-checked=true]{background:var(--car)}
+  .sw[aria-checked=true] i{left:21px}
+  .chat{margin-top:16px}
+  .bubble{display:inline-block;max-width:82%;padding:11px 14px;border-radius:18px 18px 18px 6px;background:var(--soft);font-size:14px;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
+  .menu{position:fixed;z-index:60;min-width:156px;padding:6px;background:var(--card);border-radius:18px;--cp-radius:18px;box-shadow:0 22px 44px -18px rgba(40,20,5,.5),0 0 0 1px var(--line)}
+  .menu button{display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border-radius:12px;font-size:14px;text-align:left}
+  .menu button.danger{color:#d0533e}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:70;padding:11px 18px;border-radius:999px;background:#2b1f17;color:#fbefe3;font-size:14px;white-space:nowrap;box-shadow:0 16px 30px -14px rgba(0,0,0,.55)}
+  html[data-theme=dark] .toast{background:#f3e7d9;color:#2b1f17}
+  .mask{position:fixed;inset:0;z-index:50;background:rgba(30,16,6,.3);animation:fade .25s both}
+  @keyframes fade{from{opacity:0}}
+  .sheet{position:fixed;left:12px;right:12px;bottom:14px;max-width:416px;margin:0 auto;z-index:55;background:var(--card);border-radius:30px;padding:12px 18px 16px;box-shadow:0 30px 60px -24px rgba(30,14,4,.6)}
+  .sheet .grab{width:38px;height:5px;border-radius:9px;background:var(--line);margin:0 auto 12px}
+  .sheet h3{margin:0 0 4px;font-size:18px}
+  .sheet p{margin:0 0 14px;color:var(--mute);font-size:13.5px}
+
+  /* 灵动岛 */
+  .island{position:fixed;top:10px;left:50%;translate:-50% 0;z-index:45;background:#0c0908;color:#f7eee5;overflow:hidden;cursor:pointer;box-shadow:0 10px 26px -12px rgba(0,0,0,.55)}
+  .island>[data-c]{position:absolute;left:50%;top:0;translate:-50% 0;display:none;align-items:center;gap:8px;padding:0 15px;font-size:13px;white-space:nowrap}
+  .island>[data-in]{display:flex;opacity:var(--island-in,1);filter:blur(var(--island-blur,0))}
+  .island>[data-out]{display:flex;opacity:var(--island-out,0)}
+  .island .pill{height:34px}
+  .island .pill .sp{flex:1}
+  .island .pill .t{font-variant-numeric:tabular-nums;color:#f6c58f;font-weight:700}
+  .island .card{flex-direction:column;align-items:stretch;justify-content:center;gap:6px;height:150px;padding:0 22px;white-space:normal}
+  .island .card .k{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:800}
+  .island .card .k .em{font-size:28px}
+  .island .card .s{color:#bfae9d;font-size:12.5px}
+  .island .card .bar2{height:6px;border-radius:9px;background:#2b231d;overflow:hidden;margin-top:4px}
+  .island .card .bar2 i{display:block;height:100%;width:62%;border-radius:9px;background:#e39a52}
+  .ibtns{display:flex;gap:10px;margin-top:4px}
+
+  .rules{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+  .rules li{background:var(--card);border-radius:16px;padding:10px 14px;font-size:13.5px;box-shadow:var(--shadow)}
+  .rules b{display:inline-block;min-width:3.6em;color:var(--soft-ink)}
+  footer{margin-top:34px;color:var(--mute);font-size:12px;text-align:center}
+</style>
+</head>
+<body>
+
+<!-- 灵动岛（自己有原生弹簧，不要再套果冻：data-cp="none"） -->
+<div class="island" id="island" data-cp="none" role="button" tabindex="0" aria-label="灵动岛">
+  <div class="pill" data-c="timer" style="width:198px"><span>🍮</span><span>布丁冷藏中</span><span class="sp"></span><span class="t" id="tm">04:59</span></div>
+  <div class="pill" data-c="syrup" style="width:222px"><span>🍯</span><span>焦糖熬好了</span><span class="sp"></span><span class="t">关火</span></div>
+  <div class="card" data-c="timer-card" id="cardTimer"><div class="k"><span class="em">🍮</span>布丁还在冷藏</div><div class="s">再等一会儿就能 duang 起来了</div><div class="bar2"><i></i></div></div>
+  <div class="card" data-c="syrup-card" id="cardSyrup"><div class="k"><span class="em">🍯</span>焦糖熬好了</div><div class="s">琥珀色正好，关火，趁热淋到布丁上</div><div class="bar2"><i style="width:100%"></i></div></div>
+</div>
+
+<main class="wrap">
+  <header class="top">
+    <h1 class="serif">焦糖布丁</h1>
+    <p class="sub">Caramel Pudding · 给网页用的 Q 弹 + 黏连手感</p>
+    <div class="tools">
+      <button class="tool" id="themeBtn">深色</button>
+      <button class="tool" id="slowBtn">慢放 ×0.25</button>
+      <a class="tool" href="https://github.com/wave2234/caramel-pudding">GitHub</a>
+    </div>
+  </header>
+
+  <section class="sec" id="caramel">
+    <div class="sec-h"><h2 class="serif">焦糖</h2><span class="en">Caramel · 黏连</span></div>
+    <p class="lede">一排圆角块、同一时间只亮一颗的地方：选中色像糖浆一样从旧的那颗流到新的那颗。按住不放，旧的会先被「吸」过来一点。</p>
+    <div class="demo" data-shot="seg"><div class="lab">分段选择</div>
+      <div class="seg" id="seg"><button class="on">日</button><button>周</button><button>月</button><button>年</button></div>
+    </div>
+    <div class="demo" data-shot="tabs"><div class="lab">标签页（aria-selected）</div>
+      <div class="tabs" role="tablist"><button role="tab" aria-selected="true">推荐</button><button role="tab" aria-selected="false">关注</button><button role="tab" aria-selected="false">热门</button><button role="tab" aria-selected="false">附近</button></div>
+    </div>
+    <div class="demo" data-shot="chips"><div class="lab">口味筛选（每次点击整排重画，像 React / Vue）</div>
+      <div class="chips" id="chips"></div>
+    </div>
+    <div class="demo panel" data-shot="cal"><div class="lab">日期</div>
+      <div class="wk"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+      <div class="cal" id="cal"></div>
+    </div>
+    <div class="demo" data-shot="bar"><div class="lab">底部导航（亮的是图标后面那颗小药丸）</div>
+      <nav class="bar" id="bar">
+        <button class="tab on"><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 11.4 12 5l8 6.4V19a1 1 0 0 1-1 1h-4.4v-5.2H9.4V20H5a1 1 0 0 1-1-1z"/></svg></span>首页</button>
+        <button class="tab"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.4"/><path d="m20 20-4.3-4.3"/></svg></span>发现</button>
+        <button class="tab"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 19.6s-7.2-4.4-7.2-9.6A4 4 0 0 1 12 7.7a4 4 0 0 1 7.2 2.3c0 5.2-7.2 9.6-7.2 9.6z"/></svg></span>收藏</button>
+        <button class="tab"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.8" r="3.6"/><path d="M5.4 19.6c1.2-3.4 3.7-5.1 6.6-5.1s5.4 1.7 6.6 5.1"/></svg></span>我的</button>
+      </nav>
+    </div>
+  </section>
+
+  <section class="sec" id="pudding">
+    <div class="sec-h"><h2 class="serif">布丁</h2><span class="en">Pudding · Q 弹</span></div>
+    <p class="lede">大卡片、大按钮：按下去压扁一点，松手像布丁一样抖两下。浮层「啵」地弹出来，长按菜单从手指按住的地方长出来。</p>
+    <div class="cards" data-shot="cards">
+      <button class="pcard"><span class="em">🍮</span><b>焦糖布丁</b><small>按住，再松手</small></button>
+      <button class="pcard alt"><span class="em">🥭</span><b>芒果布丁</b><small>大卡片 · 果冻</small></button>
+    </div>
+    <button class="big" id="addBtn">加入购物车</button>
+    <div class="row2"><button class="mid" id="toastBtn">弹一个提示</button><button class="mid" id="sheetBtn">打开浮层卡片</button></div>
+    <div class="panel line">
+      <div class="stepper"><button class="sq" id="minus" aria-label="减">−</button><span class="num" id="num">1</span><button class="sq" id="plus" aria-label="加">+</button></div>
+      <span class="sp"></span><span style="font-size:13px;color:var(--mute)">加奶油</span>
+      <button class="sw" role="switch" aria-checked="false" id="sw" aria-label="加奶油"><i></i></button>
+    </div>
+    <div class="chat" data-shot="chat"><div class="bubble" id="bubble">长按这条消息（电脑上右键），菜单会从你手指的位置长出来</div></div>
+  </section>
+
+  <section class="sec" id="island-sec">
+    <div class="sec-h"><h2 class="serif">灵动岛</h2><span class="en">Island · 原生弹簧</span></div>
+    <p class="lede">顶上那颗胶囊。宽、高、圆角三根弹簧：展开带一点点过冲，收起临界阻尼不回弹。点胶囊展开 / 收起。</p>
+    <div class="ibtns"><button class="mid" style="flex:1" id="iTimer">冷藏布丁</button><button class="mid" style="flex:1" id="iSyrup">焦糖好了</button></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-h"><h2 class="serif">哪里用哪个</h2></div>
+    <ul class="rules">
+      <li><b>焦糖</b>一排圆角块里只亮一颗：分段、Tab、筛选、底栏、日期</li>
+      <li><b>布丁</b>大卡片、大按钮、浮层弹出、长按菜单</li>
+      <li><b>淡一下</b>小字、开关、小图标、列表行</li>
+      <li><b>不动</b>输入框、自己会展开的卡片、拖拽中的东西</li>
+    </ul>
+  </section>
+
+  <footer>MIT · 一个 JS 文件，零依赖 · <a href="https://github.com/wave2234/caramel-pudding">github.com/wave2234/caramel-pudding</a></footer>
+</main>
+
+<div class="menu cp-menu" id="menu" role="menu" hidden>
+  <button role="menuitem">📋 复制</button><button role="menuitem">⭐ 收藏</button><button role="menuitem">↩️ 引用</button><button role="menuitem" class="danger">🗑 删除</button>
+</div>
+<div class="mask" id="mask" hidden></div>
+<div class="sheet" id="sheet" role="dialog" aria-label="浮层卡片" hidden>
+  <div class="grab"></div>
+  <h3>今日份布丁 🍮</h3>
+  <p>浮层出现时加一个 <code>cp-pop</code>：从下面「啵」地弹上来，落定前轻轻晃一下。</p>
+  <button class="big" id="sheetClose">好的</button>
+</div>
+
+<script src="caramel-pudding.js"></script>
+<script src="island.js"></script>
+<script>
+(function () {
+  var $ = function (s) { return document.querySelector(s); };
+  var sp = function () { return CaramelPudding.config.speed; };
+  var clamp = function (v, a, b) { return Math.max(a, Math.min(b, v)); };
+
+  // 分段
+  $('#seg').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    $('#seg .on').classList.remove('on'); b.classList.add('on');
+  });
+  // tab
+  document.querySelectorAll('.tabs').forEach(function (t) {
+    t.addEventListener('click', function (e) {
+      var b = e.target.closest('[role=tab]'); if (!b) return;
+      t.querySelectorAll('[role=tab]').forEach(function (x) { x.setAttribute('aria-selected', String(x === b)); });
+    });
+  });
+  // chips：整排重画
+  var flavors = ['抹茶', '草莓', '芒果', '椰子', '巧克力', '海盐', '桂花', '黑糖', '杏仁'], fl = 2;
+  function renderChips() {
+    $('#chips').innerHTML = flavors.map(function (f, i) { return '<button class="chip' + (i === fl ? ' on' : '') + '" data-i="' + i + '">' + f + '</button>'; }).join('');
+  }
+  renderChips();
+  $('#chips').addEventListener('click', function (e) {
+    var b = e.target.closest('.chip'); if (!b) return;
+    fl = +b.dataset.i; renderChips();
+  });
+  // 日期
+  var cal = $('#cal'), html = '';
+  for (var d = 10; d < 24; d++) html += '<button class="d' + (d === 17 ? ' on' : '') + (d === 15 ? ' today' : '') + '">' + d + '</button>';
+  cal.innerHTML = html;
+  cal.addEventListener('click', function (e) {
+    var b = e.target.closest('.d'); if (!b) return;
+    cal.querySelector('.on').classList.remove('on'); b.classList.add('on');
+  });
+  // 底栏
+  $('#bar').addEventListener('click', function (e) {
+    var b = e.target.closest('.tab'); if (!b) return;
+    $('#bar .on').classList.remove('on'); b.classList.add('on');
+  });
+
+  // 提示（cp-pop 弹出，CaramelPudding.out 收起）
+  $('#toastBtn').addEventListener('click', function () {
+    var t = document.createElement('div');
+    t.className = 'toast cp-pop'; t.textContent = '🍮 已经帮你留了一份布丁';
+    document.body.appendChild(t);
+    setTimeout(function () { CaramelPudding.out(t, 'remove'); }, 1700 / sp());
+  });
+  $('#addBtn').addEventListener('click', function () {
+    var n = $('#num'); n.textContent = String(+n.textContent + 1);
+  });
+  // 浮层卡片
+  $('#sheetBtn').addEventListener('click', function () {
+    $('#mask').hidden = false; $('#sheet').hidden = false; CaramelPudding.pop($('#sheet'));
+  });
+  function closeSheet() { CaramelPudding.out($('#sheet'), 'hide'); CaramelPudding.out($('#mask'), 'hide'); }
+  $('#sheetClose').addEventListener('click', closeSheet);
+  $('#mask').addEventListener('click', closeSheet);
+  // 数量 & 开关（小东西：只淡一下）
+  $('#minus').addEventListener('click', function () { var n = $('#num'); n.textContent = String(Math.max(0, +n.textContent - 1)); });
+  $('#plus').addEventListener('click', function () { var n = $('#num'); n.textContent = String(+n.textContent + 1); });
+  $('#sw').addEventListener('click', function () { this.setAttribute('aria-checked', String(this.getAttribute('aria-checked') !== 'true')); });
+
+  // 长按菜单：从手指的位置长出来
+  var menu = $('#menu'), bubble = $('#bubble'), lp = 0, sx = 0, sy = 0;
+  function openMenu(x, y) {
+    menu.hidden = false;
+    var w = menu.offsetWidth, h = menu.offsetHeight;
+    menu.style.left = clamp(x - 28, 10, innerWidth - w - 10) + 'px';
+    menu.style.top = clamp(y + 12, 10, innerHeight - h - 10) + 'px';
+    CaramelPudding.menu(menu, x, y);
+  }
+  bubble.addEventListener('pointerdown', function (e) {
+    if (e.button !== 0) return;
+    sx = e.clientX; sy = e.clientY; clearTimeout(lp);
+    lp = setTimeout(function () { openMenu(sx, sy); }, 460 / sp());
+  });
+  bubble.addEventListener('pointermove', function (e) { if (Math.hypot(e.clientX - sx, e.clientY - sy) > 10) clearTimeout(lp); });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (t) { bubble.addEventListener(t, function () { clearTimeout(lp); }); });
+  bubble.addEventListener('contextmenu', function (e) { e.preventDefault(); clearTimeout(lp); openMenu(e.clientX, e.clientY); });
+  document.addEventListener('pointerdown', function (e) {
+    if (!menu.hidden && !menu.contains(e.target)) CaramelPudding.out(menu, 'hide');
+  }, true);
+  menu.addEventListener('click', function (e) { if (e.target.closest('button')) setTimeout(function () { CaramelPudding.out(menu, 'hide'); }, 120 / sp()); });
+
+  // 灵动岛
+  var isl = $('#island'), BEAN = { w: 118, h: 34, r: 17 };
+  var island = new CaramelIsland(isl, { bean: BEAN });
+  var shown = '', topic = '';
+  var cw = function () { return Math.min(380, innerWidth - 20); };
+  ['timer-card', 'syrup-card'].forEach(function (k) { isl.querySelector('[data-c="' + k + '"]').style.width = cw() + 'px'; });
+  var SHAPES = {
+    timer: { w: 198, h: 34, r: 17 }, syrup: { w: 222, h: 34, r: 17 },
+    'timer-card': function () { return { w: cw(), h: 150, r: 38 }; }, 'syrup-card': function () { return { w: cw(), h: 150, r: 38 }; }
+  };
+  function show(name, opts) {
+    isl.querySelectorAll('[data-c]').forEach(function (c) {
+      c.removeAttribute('data-in'); c.removeAttribute('data-out');
+      if (c.dataset.c === shown && shown !== name) c.setAttribute('data-out', '');
+      if (c.dataset.c === name) c.setAttribute('data-in', '');
+    });
+    shown = name;
+    var s = name ? SHAPES[name] : BEAN;
+    island.to(typeof s === 'function' ? s() : s, opts || {});
+  }
+  $('#iTimer').addEventListener('click', function () { topic = 'timer'; show('timer'); });
+  $('#iSyrup').addEventListener('click', function () { topic = 'syrup'; show('syrup'); });
+  isl.addEventListener('click', function () {
+    if (!topic) { topic = 'timer'; return show('timer'); }
+    if (shown === topic) show(topic + '-card', { open: true });
+    else show(topic);
+  });
+  var left = 299;
+  setInterval(function () { left = left > 0 ? left - 1 : 299; $('#tm').textContent = '0' + Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0'); }, 1000);
+
+  // 深色 / 慢放
+  $('#themeBtn').addEventListener('click', function () {
+    var dark = document.documentElement.dataset.theme !== 'dark';
+    document.documentElement.dataset.theme = dark ? 'dark' : '';
+    this.textContent = dark ? '浅色' : '深色';
+    document.querySelector('meta[name=theme-color]').content = dark ? '#1b1511' : '#f6efe4';
+  });
+  $('#slowBtn').addEventListener('click', function () {
+    var slow = sp() === 1;
+    CaramelPudding.setSpeed(slow ? 0.25 : 1);
+    this.classList.toggle('on', slow);
+    this.textContent = slow ? '正常速度' : '慢放 ×0.25';
+  });
+})();
+</script>
+</body>
+</html>
